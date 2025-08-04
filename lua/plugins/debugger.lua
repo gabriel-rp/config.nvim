@@ -1,11 +1,3 @@
--- debug.lua
---
--- Shows how to use the DAP plugin to debug your code.
---
--- Primarily focused on configuring the debugger for Go, but can
--- be extended to other languages as well. That's why it's called
--- kickstart.nvim and not kitchen-sink.nvim ;)
-
 return {
   'mfussenegger/nvim-dap',
   dependencies = {
@@ -21,6 +13,8 @@ return {
 
     -- Add your own debuggers here
     'leoluz/nvim-dap-go',
+    'mfussenegger/nvim-dap-python',
+    'sztomi/dap-rs',
   },
   keys = {
     -- Basic debugging keymaps, feel free to change to your liking!
@@ -142,5 +136,17 @@ return {
         detached = vim.fn.has 'win32' == 0,
       },
     }
+    -- Ensures debugger works with poetry projects
+    require('dap-python').setup 'python3'
+    local handle = io.popen 'poetry run which python'
+    if handle ~= nil then
+      local poetry_python_path = handle:read '*a'
+      local _, _, exit_code = handle:close()
+      if poetry_python_path ~= nil and handle ~= nil and exit_code == 0 then
+        require('dap-python').resolve_python = function()
+          return poetry_python_path
+        end
+      end
+    end
   end,
 }
